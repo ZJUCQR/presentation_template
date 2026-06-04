@@ -1,0 +1,157 @@
+% ============================================================
+\section{实验验证}
+% ============================================================
+\sectioncover{03}{实验验证}{}
+
+\begin{frame}{实验设置}
+  \slidekey{实验在主模型与跨模型两套设置上验证方法有效性，统一使用 LoRA 低成本适配。}
+
+  \begin{block}{模型与训练配置}
+    \begin{compactitem}
+      \item 主实验：Wan2.2-TI2V-5B
+      \item 跨模型：Wan2.1-T2V-1.3B
+      \item 分辨率 $704\times1248$，帧数 81
+      \item 采样步数：50
+      \item AdamW，学习率 $3\times10^{-5}$
+      \item LoRA：rank=32，alpha=64；冻结文本编码器和 VAE
+    \end{compactitem}
+  \end{block}
+
+  \vspace{0.10cm}
+  \begin{exampleblock}{Flow-GRPO 与 VLM 配置}
+    \begin{compactitem}
+      \item 群组大小 $G=4$
+      \item PC 和 SA 权重均为 0.5
+      \item 噪声：$\sigma=0.3$
+      \item KL 系数 $\beta=10^{-3}$，优势截断 5.0
+      \item VLM 评估器：评分范围 1 到 5
+    \end{compactitem}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{提示词数据分布}
+  \slidekey{提示词覆盖四类物理现象，并通过模型筛选与人工筛查保证可观察、可评价。}
+
+  \centering
+  \includegraphics[width=0.80\paperwidth,height=0.52\paperheight,keepaspectratio]{prompt_category_distribution.pdf}
+
+  \vspace{0.12cm}
+  \begin{block}{}
+    \small
+    \begin{compactitem}
+      \item 覆盖重力与碰撞、材料与流体、人体动作、因果事件四类物理现象。
+      \item 每条提示词应包含明确动作、可观察后果和较少歧义的物理判断标准。
+    \end{compactitem}
+  \end{block}
+\end{frame}
+
+\begin{frame}{VBench2.0 主实验结果}
+  \slidekey{本文方法在多个物理相关维度上取得一致提升，尤其是人体身份和复杂情节。}
+
+  \centering
+  \includegraphics[width=0.88\paperwidth,height=0.65\paperheight,keepaspectratio]{vbench_selected_dimensions.pdf}
+\end{frame}
+
+\begin{frame}{VBench2.0 详细数据}
+  \slidekey{主模型与跨模型设置均有提升，说明框架不只依赖单一基础模型。}
+
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \smalltab
+    \begin{tabular}{lccccccc}
+      \toprule
+      \textbf{模型} & \textbf{人体身份} & \textbf{人体结构} & \textbf{力学} & \textbf{热学} & \textbf{材料} & \textbf{运动合理性} & \textbf{复杂情节} \\
+      \midrule
+      Wan2.2 基线 & 0.638 & 0.771 & 0.702 & 0.710 & 0.704 & 0.431 & 0.123 \\
+      \rowcolor{SOTAPink}
+      \textbf{本文} & \textbf{0.760} & \textbf{0.877} & \textbf{0.731} & \textbf{0.737} & \textbf{0.732} & \textbf{0.459} & \textbf{0.156} \\
+      $\Delta$ & +19.2\% & +13.8\% & +4.2\% & +3.8\% & +3.9\% & +6.4\% & +26.5\% \\
+      \midrule
+      Wan2.1 基线 & 0.631 & 0.758 & 0.639 & 0.691 & 0.789 & 0.420 & 0.111 \\
+      \rowcolor{SOTAPink}
+      \textbf{本文} & \textbf{0.685} & \textbf{0.802} & \textbf{0.674} & \textbf{0.721} & \textbf{0.813} & \textbf{0.447} & \textbf{0.139} \\
+      $\Delta$ & +8.5\% & +5.7\% & +5.5\% & +4.5\% & +3.0\% & +6.6\% & +25.9\% \\
+      \bottomrule
+    \end{tabular}
+  }
+
+  \vspace{0.28cm}
+  \tagbox[ZJUGreen]{物理相关维度均提升，同时用跨模型验证了框架通用性}
+\end{frame}
+
+\begin{frame}{人工评测}
+  \slidekey{50 条提示词、3 名评测者盲测，多数投票决定偏好，验证主观观感提升。}
+
+  \centering
+  \small 50 条提示词，3 名评测者盲测，多数投票决定偏好。
+
+  \vspace{0.20cm}
+  \begin{tabular}{lccc}
+    \toprule
+    \textbf{对比} & \textbf{本文} & \textbf{基线} & \textbf{平局} \\
+    \midrule
+    Wan2.2 & \textbf{28} & 15 & 7 \\
+    Wan2.1 & \textbf{25} & 12 & 13 \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{消融实验}
+  \slidekey{SDE 噪声消融实验显示 $\sigma=0.3$ 的探索-质量权衡最佳。}
+
+  \centering
+  \begin{tabular}{cccc}
+    \toprule
+    $\sigma$ & \textbf{力学} & \textbf{运动合理性} & \textbf{复杂情节} \\
+    \midrule
+    基线 & 0.702 & 0.431 & 0.123 \\
+    0.1 & 0.717 & 0.444 & 0.119 \\
+    \rowcolor{SOTAPink}
+    \textbf{0.3} & \textbf{0.731} & \textbf{0.459} & \textbf{0.156} \\
+    0.7 & 0.665 & 0.398 & 0.091 \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.20cm}
+  \begin{tikzpicture}
+    \node[
+      fill=TitleBlue,
+      draw=ZJUBlue!35,
+      rounded corners=3pt,
+      text width=0.90\textwidth,
+      align=center,
+      inner sep=0.14cm,
+      font=\small
+    ] {$\sigma=0.3$ 在探索与视频质量之间取得较好平衡，$\sigma$ 过小则探索不足，过大则视频质量下降。};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{定性分析：油倒入牛奶}
+  \slidekey{本文模型使流体边界和材料分层更加稳定，减少基线中"混在一起"的现象。}
+
+  \centering
+  \includegraphics[width=0.84\paperwidth,height=0.56\paperheight,keepaspectratio]{qualitative_case_oil_milk.pdf}
+
+  \vspace{0.14cm}
+  \begin{tikzpicture}
+    \node[
+      fill=TitleBlue,
+      draw=ZJUBlue!35,
+      rounded corners=3pt,
+      text width=0.90\textwidth,
+      align=center,
+      inner sep=0.14cm,
+      font=\small
+    ] {\textbf{基线}：油与牛奶混合，不符合物理规律。\\[2pt]\textbf{本文}：黄色薄层更清晰，流体边界更稳定，符合物理规律。};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{训练过程：KL 正则化稳定性}
+  \slidekey{参考 KL 曲线整体维持在 $10^{-4}$ 量级，说明策略更新受到约束，没有重写基础生成分布。}
+
+  \centering
+  \includegraphics[width=0.80\paperwidth,height=0.55\paperheight,keepaspectratio]{reference_kl_loss_curve.pdf}
+
+  \vspace{0.12cm}
+  \small KL 曲线未持续发散，说明物理对齐主要是局部行为修正，策略更新受控。
+\end{frame}

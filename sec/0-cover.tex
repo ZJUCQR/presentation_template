@@ -1,0 +1,61 @@
+% ==================== Cover ====================
+{
+\setbeamertemplate{footline}{}
+\setbeamertemplate{frametitle}{}
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[white] (current page.south west) rectangle (current page.north east);
+    \fill[TitleBlue] (current page.north west) rectangle ([yshift=-0.82cm]current page.north east);
+    \draw[LineGray,line width=0.4pt]
+      ([xshift=0.65cm,yshift=-0.82cm]current page.north west) --
+      ([xshift=-0.65cm,yshift=-0.82cm]current page.north east);
+    \node[anchor=north west, text=ZJUBlue, font=\bfseries\normalsize]
+      at ([xshift=0.78cm,yshift=-0.23cm]current page.north west) {本科毕业论文答辩};
+    \node[anchor=north east, xshift=-0.72cm, yshift=-0.16cm] at (current page.north east)
+      {\includegraphics[height=0.58cm]{zjuchar.pdf}};
+    \node[anchor=north west, text=ZJUBlue, font=\fontsize{20}{25}\selectfont\bfseries]
+      at ([xshift=0.95cm,yshift=-1.78cm]current page.north west) {基于视觉语言模型反馈与强化学习优化的};
+    \node[anchor=north west, text=ZJUBlue, font=\fontsize{20}{25}\selectfont\bfseries]
+      at ([xshift=0.95cm,yshift=-2.55cm]current page.north west) {世界模型后训练研究};
+    \node[
+      anchor=north west,
+      text=ZJUGray,
+      font=\fontsize{9}{11}\selectfont,
+      text width=14.5cm,
+      align=left
+    ] at ([xshift=0.95cm,yshift=-3.42cm]current page.north west)
+      {Post-Training of World Models Based on Vision-Language Model Feedback and\\Reinforcement Learning Optimization};
+    \draw[LineGray,line width=0.7pt]
+      ([xshift=0.95cm,yshift=-4.52cm]current page.north west) --
+      ([xshift=10.90cm,yshift=-4.52cm]current page.north west);
+    \node[anchor=north, font=\normalsize, align=center]
+      at ([yshift=-5.02cm]current page.north) {%
+        \renewcommand{\arraystretch}{1.28}
+        \begin{tabular}{r@{\quad}l}
+          \textcolor{ZJUGray}{答辩人} & \textbf{答辩人姓名} \\
+          \textcolor{ZJUGray}{学号} & \textbf{XXXXXXXXXX} \\
+          \textcolor{ZJUGray}{指导教师} & \textbf{XXX老师} \\
+          \textcolor{ZJUGray}{学院} & \textbf{XX学院} \\
+          \textcolor{ZJUGray}{专业} & \textbf{20XX 级XX专业} \\
+          \textcolor{ZJUGray}{日期} & \textbf{20XX 年 X 月 X 日}
+        \end{tabular}
+      };
+  \end{tikzpicture}
+\end{frame}
+}
+
+% ==================== Outline ====================
+\begin{frame}{目录}
+  \vspace{0.28cm}
+  \centering
+  \begin{tikzpicture}[x=1cm,y=1cm]
+    \node[fill=TitleBlue,draw=ZJUBlue!28,rounded corners=3pt,minimum width=6.25cm,minimum height=1.34cm,align=left,text width=5.55cm,inner xsep=0.35cm]
+      at (-3.45,0) {\textbf{\textcolor{ZJUBlue}{01 研究背景与动机}}\\[2pt]\scriptsize 视频生成世界模型的物理常识缺陷};
+    \node[fill=TitleBlue,draw=ZJUBlue!28,rounded corners=3pt,minimum width=6.25cm,minimum height=1.34cm,align=left,text width=5.55cm,inner xsep=0.35cm]
+      at (3.45,0) {\textbf{\textcolor{ZJUBlue}{03 实验验证}}\\[2pt]\scriptsize 设置、实验结果、消融实验与定性分析};
+    \node[fill=TitleBlue,draw=ZJUBlue!28,rounded corners=3pt,minimum width=6.25cm,minimum height=1.34cm,align=left,text width=5.55cm,inner xsep=0.35cm]
+      at (-3.45,-1.72) {\textbf{\textcolor{ZJUBlue}{02 方法设计}}\\[2pt]\scriptsize 物理事件提示词构建 + VLM 反馈的Flow-GRPO 后训练策略};
+    \node[fill=TitleBlue,draw=ZJUBlue!28,rounded corners=3pt,minimum width=6.25cm,minimum height=1.34cm,align=left,text width=5.55cm,inner xsep=0.35cm]
+      at (3.45,-1.72) {\textbf{\textcolor{ZJUBlue}{04 总结与展望}}\\[2pt]\scriptsize 贡献与未来展望};
+  \end{tikzpicture}
+\end{frame}

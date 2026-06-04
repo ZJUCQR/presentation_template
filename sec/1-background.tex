@@ -1,0 +1,96 @@
+% ============================================================
+\section{研究背景与动机}
+% ============================================================
+\sectioncover{01}{研究背景与动机}{}
+
+\begin{frame}{视频生成模型与物理常识挑战}
+  \slidekey{新一代视频生成模型已经能生成较高质量的开放域视频，但物理常识仍是高频短板。}
+
+  \begin{block}{新一代世界模型（视频生成模型）}
+    \begin{compactitem}
+      \item Sora、Veo、Kling、Wan 等模型已能根据文本提示生成高分辨率的视频，初步具备对真实世界的建模能力。
+      \item 支持文本到视频、图像到视频等多种生成模式，单帧画质和时间一致性持续提升。
+      \item 该方向正在从单纯的内容生成向世界模拟器演进，有望成为机器人仿真、具身智能和科学可视化的基础工具。
+    \end{compactitem}
+  \end{block}
+
+  \vspace{0.30cm}
+  \begin{alertblock}{物理常识缺陷}
+    \begin{compactitem}
+      \item \textbf{现状：}物体穿透、重力失效、碰撞无响应，材料形变与流体边界失真等。
+      \item \textbf{表现：}模型倾向于生成视觉上"好看"但不符合物理规律的视频。
+      \item \textbf{为何重要：}缺乏物理常识的视频模型无法支撑需要物理一致性的下游任务，如机器人策略学习和自动驾驶仿真。
+    \end{compactitem}
+  \end{alertblock}
+
+\end{frame}
+
+\begin{frame}{现有方案的困境}
+  \slidekey{显式仿真、统一大模型、离线偏好优化各有代价；在线 VLM 反馈可作为轻量后训练信号。}
+
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{block}{\centering 显式物理引擎}
+        \small
+        \textcolor{ZJUGreen!70!black}{\textbf{优势：}}封闭场景中物理约束明确，可解释性强。
+
+        \vspace{0.08cm}
+        \textcolor{ZJURed}{\textbf{困境：}}开放域场景远超仿真器覆盖范围，需要精确初始条件，文本提示通常无法提供。
+      \end{block}
+    \end{column}%
+    \begin{column}{0.31\textwidth}
+      \begin{block}{\centering 统一多模态大模型}
+        \small
+        \textcolor{ZJUGreen!70!black}{\textbf{优势：}}从头预训练融合理解与生成，能力完整。
+
+        \vspace{0.08cm}
+        \textcolor{ZJURed}{\textbf{困境：}}需数千 GPU 和 PB 级数据，物理正确视频占比极小，易拟合虚假统计模式。
+      \end{block}
+    \end{column}%
+    \begin{column}{0.31\textwidth}
+      \begin{block}{\centering 离线对齐}
+        \small
+        \textcolor{ZJUGreen!70!black}{\textbf{优势：}}不需要在线采样，从配对好坏视频数据中学习偏好。
+
+        \vspace{0.08cm}
+        \textcolor{ZJURed}{\textbf{困境：}}训练数据固定，模型无法探索新策略并获得即时反馈，静态偏好数据无法持续改进。
+      \end{block}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.18cm}
+  \begin{tikzpicture}
+    \node[
+      fill=TitleBlue,
+      draw=ZJUBlue!35,
+      rounded corners=4pt,
+      text width=0.96\textwidth,
+      align=center,
+      inner sep=0.18cm
+    ] {\small\textbf{\textcolor{ZJUBlue}{研究动机}}\\[2pt]在不依赖物理模拟器的前提下，通过视觉语言模型反馈和在线强化学习\\让世界模型生成的视频更符合物理规律。};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{主要工作与贡献}
+  \slidekey{围绕"数据、奖励、算法、验证"四个环节构建完整后训练闭环。}
+
+  \vspace{0.12cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{1. 构建物理提示词集}
+        \small 构建并筛选物理提示词数据集，覆盖重力碰撞、材料流体等方面。
+      \end{block}
+      \begin{block}{2. 视觉语言模型双维度奖励}
+        \small 通过 PC 和 SA 两个维度，分别约束物理常识和语义贴合，减少奖励作弊行为。
+      \end{block}
+    \end{column}%
+    \begin{column}{0.48\textwidth}
+      \begin{block}{3. 强化学习后训练策略}
+        \small 参照 Flow-GRPO 论文实现代码，完成 SDE 采样、群组相对优势估计与 LoRA 参数更新。
+      \end{block}
+      \begin{block}{4. 多维度实验验证}
+        \small 通过 VBench2.0、人工偏好、消融实验和跨模型实验验证训练有效性。
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}

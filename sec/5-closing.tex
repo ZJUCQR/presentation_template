@@ -1,0 +1,37 @@
+% ==================== Thanks ====================
+{
+\setbeamertemplate{footline}{}
+\setbeamertemplate{frametitle}{}
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[white] (current page.south west) rectangle (current page.north east);
+    \fill[TitleBlue] (current page.north west) rectangle ([yshift=-0.82cm]current page.north east);
+    \draw[LineGray,line width=0.4pt]
+      ([xshift=0.65cm,yshift=-0.82cm]current page.north west) --
+      ([xshift=-0.65cm,yshift=-0.82cm]current page.north east);
+    \node[anchor=north west, text=ZJUBlue, font=\bfseries\normalsize]
+      at ([xshift=0.78cm,yshift=-0.23cm]current page.north west) {本科毕业论文答辩};
+    \node[anchor=north east, xshift=-0.72cm, yshift=-0.16cm] at (current page.north east)
+      {\includegraphics[height=0.58cm]{zjuchar.pdf}};
+    \draw[LineGray,line width=0.7pt]
+      ([xshift=3.10cm,yshift=-4.28cm]current page.north west) --
+      ([xshift=12.90cm,yshift=-4.28cm]current page.north west);
+  \end{tikzpicture}
+
+  \vspace{1.82cm}
+  \centering
+  {\huge\bfseries\textcolor{ZJUBlue}{谢谢各位老师}}\\[0.30cm]
+  {\Large\textcolor{ZJUGray}{请各位老师批评指正}}\\[0.74cm]
+  {\normalsize
+    \renewcommand{\arraystretch}{1.28}
+    \begin{tabular}{c@{\quad}c}
+      \textcolor{ZJUGray}{答辩人} & \textbf{答辩人姓名} \\
+      \textcolor{ZJUGray}{学号} & \textbf{XXXXXXXXXX} \\
+      \textcolor{ZJUGray}{指导教师} & \textbf{XXX老师} \\
+      \textcolor{ZJUGray}{学院} & \textbf{XX学院} \\
+      \textcolor{ZJUGray}{专业} & \textbf{20XX 级XX专业} \\
+      \textcolor{ZJUGray}{日期} & \textbf{20XX 年 X 月 X 日}
+    \end{tabular}
+  }
+\end{frame}
+}

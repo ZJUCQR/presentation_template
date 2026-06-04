@@ -1,0 +1,307 @@
+% ============================================================
+\section{方法设计}
+% ============================================================
+\sectioncover{02}{方法设计}{}
+
+% ====== 方法设计：提示词构建 ======
+
+\begin{frame}{物理事件提示词构建}
+  \slidekey{提示词构建是方法的一部分：把普通场景描述转化为可生成、可观察、可评价的物理事件。}
+
+  \centering
+  \includegraphics[width=0.88\paperwidth,height=0.55\paperheight,keepaspectratio]{prompt_dataset_pipeline.pdf}
+\end{frame}
+
+\begin{frame}{提示词构建：三阶段流程与设计原则}
+  \slidekey{三阶段流程保证提示词质量，设计原则确保奖励聚焦物理事件。}
+
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{三阶段流程}
+        \begin{compactenum}
+          \item \textbf{候选生成：}围绕物理常识，由大语言模型批量构造描述。
+          \item \textbf{物理筛选：}由 GPT-4o 判断候选是否真正涉及物理事件，剔除静态场景。
+          \item \textbf{人工筛查：}处理边界样本与歧义结果，保证最终提示词可观察、可评价。
+        \end{compactenum}
+      \end{block}
+    \end{column}%
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{设计原则}
+        \begin{compactitem}
+          \item \textbf{明确三要素：}每条提示词必须包含初始状态、动作过程和可观察后果。
+          \item \textbf{排除不可评样本：}排除静态氛围、隐藏状态和多义结果。
+          \item \textbf{聚焦物理事件：}让奖励聚焦物理事件本身，而非一般视觉质量。
+        \end{compactitem}
+      \end{exampleblock}
+
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{提示词生成与筛选模板}
+  \slidekey{生成模板关注"初始状态、动作过程、可观察后果"，筛选模板剔除静态、不可评价或结果歧义样本。}
+
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \textbf{\textcolor{ZJUBlue}{生成候选提示词的模板}}
+      \vspace{0.10cm}
+
+      \begin{tikzpicture}
+        \node[
+          fill=CodeBg,
+          draw=LineGray,
+          rounded corners=3pt,
+          text width=0.96\textwidth,
+          align=left,
+          inner sep=0.22cm,
+          font=\footnotesize\ttfamily
+        ] {
+          Generate prompts testing\\
+          physical commonsense.\\[3pt]
+          Each prompt should:\\
+          - Describe initial state,\\
+          \phantom{- }action, consequence\\
+          - Involve gravity, collision,\\
+          \phantom{- }material, fluid, human\\
+          \phantom{- }action, causal chains\\
+          - Be observable in short\\
+          \phantom{- }video, no audio/text
+        };
+      \end{tikzpicture}
+    \end{column}%
+    \begin{column}{0.48\textwidth}
+      \textbf{\textcolor{ZJUBlue}{GPT-4o 筛选的提示词}}
+      \vspace{0.10cm}
+
+      \begin{tikzpicture}
+        \node[
+          fill=CodeBg,
+          draw=LineGray,
+          rounded corners=3pt,
+          text width=0.96\textwidth,
+          align=left,
+          inner sep=0.22cm,
+          font=\footnotesize\ttfamily
+        ] {
+          Evaluate prompt for\\
+          physical commonsense test.\\[3pt]
+          1. Truly involve physical\\
+          \phantom{1. }event, not static\\
+          2. Clear action and observable\\
+          \phantom{2. }consequence\\
+          3. Evaluable without audio,\\
+          \phantom{3. }text, hidden states\\
+          4. Unambiguous outcome\\[3pt]
+          Score 1-5, where 5 = clear physical event
+        };
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ====== 方法设计：后训练策略 ======
+
+\begin{frame}{强化学习后训练策略总览}
+  \slidekey{系统采用 Actor-VLM Judge-Trainer 架构：在线生成候选视频，视觉语言模型打分，强化学习更新 LoRA 参数。}
+
+  \centering
+  \includegraphics[width=0.90\paperwidth,height=0.59\paperheight,keepaspectratio]{vlm_feedback_physical_alignment.pdf}
+\end{frame}
+
+\begin{frame}{视觉语言模型双维度奖励}
+  \slidekey{PC 奖励约束物理常识，SA 奖励约束语义完成度，两者共同减少奖励作弊。}
+
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{物理常识奖励 PC}
+        \begin{compactitem}
+          \item 重力方向与运动趋势是否合理。
+          \item 碰撞响应、不可穿透约束。
+          \item 材料形变、液体边界。
+        \end{compactitem}
+        \vspace{0.08cm}
+        \centering \tagbox[ZJURed]{$r_{\mathrm{PC}}$}
+      \end{block}
+      \vspace{0.10cm}
+      \begin{tikzpicture}
+        \node[
+          fill=CodeBg,
+          draw=LineGray,
+          rounded corners=3pt,
+          text width=0.95\textwidth,
+          align=left,
+          inner sep=0.14cm,
+          font=\scriptsize\ttfamily
+        ] {
+          Role: Expert in physical commonsense.\\
+          Criteria: motion, force, gravity, collisions,\\
+          \phantom{Criteria: }material, causality.\\
+          Output: Score: X (1-5)
+        };
+      \end{tikzpicture}
+    \end{column}%
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{语义贴合奖励 SA}
+        \begin{compactitem}
+          \item 主体、动作、场景是否出现。
+          \item 关键视觉细节是否匹配。
+          \item 防止静止化或模糊化逃避物理错误。
+        \end{compactitem}
+        \vspace{0.08cm}
+        \centering \tagbox[ZJUGreen]{$r_{\mathrm{SA}}$}
+      \end{exampleblock}
+      \vspace{0.10cm}
+      \begin{tikzpicture}
+        \node[
+          fill=CodeBg,
+          draw=LineGray,
+          rounded corners=3pt,
+          text width=0.95\textwidth,
+          align=left,
+          inner sep=0.14cm,
+          font=\scriptsize\ttfamily
+        ] {
+          Role: Expert video analysis judge.\\
+          Criteria: objects, actions, scene,\\
+          \phantom{Criteria: }temporal order, visual details.\\
+          Output: Score: X (1-5)
+        };
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+\begin{frame}{强化学习后训练策略优化}
+  \slidekey{核心思想：用 VLM 奖励信号指导视频生成模型，通过截断策略梯度和 KL 正则化稳定训练。}
+
+  \begin{block}{Flow-GRPO 的损失函数}
+    \small
+    \[
+    L = \underbrace{-\mathbb{E}\!\left[\min\!\left(\rho_t\,\hat A,\,
+    \operatorname{clip}(\rho_t,1\!-\!\varepsilon,1\!+\!\varepsilon)\,\hat A\right)\right]}_{L_{\mathrm{pg}}\text{：策略梯度损失}}
+    \;+\;
+    \underbrace{\beta \cdot L_{\mathrm{KL}}}_{\text{KL 正则项}}
+    \]
+  \end{block}
+
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.32\textwidth}
+      \begin{exampleblock}{策略比值 $\rho_t$}
+        \begin{minipage}[t][3.0cm]{\textwidth}
+          \scriptsize
+          \[
+          \rho_t=\frac{p_\theta(z_{t-1}|z_t,c)}
+          {p_{\theta_{\mathrm{old}}}(z_{t-1}|z_t,c)}
+          \]
+          {\normalfont 衡量新旧策略在同一转移上的概率比。$\rho_t>1$ 表示新策略更倾向于该动作。}
+          \vfill
+        \end{minipage}
+      \end{exampleblock}
+    \end{column}%
+    \begin{column}{0.32\textwidth}
+      \begin{exampleblock}{优势估计 $\hat A$}
+        \begin{minipage}[t][3.0cm]{\textwidth}
+          \scriptsize
+          \[
+          \hat A=w_{\mathrm{PC}}\hat A_{\mathrm{PC}}+
+          w_{\mathrm{SA}}\hat A_{\mathrm{SA}}
+          \]
+          {\normalfont 群组内标准化后的奖励，$\hat A>0$ 表示优于平均水平。}\\[2pt]
+          \[
+          \hat A_h=\frac{r_h-\mu_{c,h}}{\sigma_{c,h}+\epsilon}
+          \]
+          \vfill
+        \end{minipage}
+      \end{exampleblock}
+    \end{column}%
+    \begin{column}{0.32\textwidth}
+      \begin{exampleblock}{KL 正则项 $L_{\mathrm{KL}}$}
+        \begin{minipage}[t][3.0cm]{\textwidth}
+          \scriptsize
+          \[
+          L_{\mathrm{KL}}=\frac{\|\mu_\theta-\mu_{\mathrm{ref}}\|_2^2}{2\sigma_t^2\Delta t}
+          \]
+          {\normalfont 约束当前策略不偏离参考模型太远，防止灾难性遗忘。}
+          \vfill
+        \end{minipage}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.06cm}
+  \begin{tikzpicture}
+    \node[
+      fill=TitleBlue,
+      draw=ZJUBlue!35,
+      rounded corners=3pt,
+      text width=0.96\textwidth,
+      align=left,
+      inner sep=0.14cm,
+      font=\scriptsize
+    ] {\textbf{直觉理解：}$\rho_t\hat A>0$ 时增大该转移概率，$\rho_t\hat A<0$ 时减小；clip 限制单步更新幅度，$\beta$ 控制保守程度。};
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{代码实现流程}
+  \slidekey{基于视觉语言模型评估的强化学习后训练策略的代码实现流程。}
+
+  \small
+  \textbf{输入：}基础生成器 $\pi_{\theta_0}$，参考策略 $\pi_{\mathrm{ref}}$，提示词集 $\mathcal{D}$，评估器 $J_{\mathrm{PC}}$ 和 $J_{\mathrm{SA}}$，组大小 $G$，KL 权重 $\beta$，截断范围 $\varepsilon$
+
+  \vspace{0.12cm}
+  \begin{tikzpicture}
+    \node[
+      fill=CodeBg,
+      draw=LineGray,
+      rounded corners=4pt,
+      text width=0.96\textwidth,
+      align=left,
+      inner sep=0.20cm,
+      font=\footnotesize
+    ] {
+      \begin{minipage}{\dimexpr\textwidth-0.44cm}
+        \begin{tabbing}
+        \hspace{1.6em}\= \hspace{1.6em}\= \hspace{1.6em}\= \hspace{1.6em}\= \kill
+        初始化 $\pi_\theta\!\leftarrow\!\pi_{\theta_0}$，加载 LoRA 适配器 \hfill \textcolor{ZJUGray}{// 加载基础模型}\\
+        \textbf{For} 每个训练轮次 \textbf{do}\\
+        \> 从 $\mathcal{D}$ 采样提示词批次 $\mathcal{C}$ \hfill \textcolor{ZJUGray}{// 采样提示词}\\
+        \> \textbf{For} 每个提示词 $c\in\mathcal{C}$ \textbf{do}\\
+        \>\> \textbf{For} $i=1,\ldots,G$ \textbf{do} \hfill \textcolor{ZJUGray}{// 采样 $G$ 条候选}\\
+        \>\>\> $(x_i,\tau_i,\ell_i^{\mathrm{old}})\!\leftarrow\!\textsc{SdeSample}(\pi_\theta,c)$\\
+        \>\>\> $r_{i,\mathrm{PC}}\!\leftarrow\!J_{\mathrm{PC}}(x_i,c)$；$r_{i,\mathrm{SA}}\!\leftarrow\!J_{\mathrm{SA}}(x_i,c)$ \hfill \textcolor{ZJUGray}{// VLM 评分}\\
+        \>\> \textbf{end for}\\
+        \>\> $\hat A_{i,h}\!\leftarrow\!(r_{i,h}\!-\!\mu_{c,h})/(\sigma_{c,h}\!+\!\epsilon_{\mathrm{std}})$ \hfill \textcolor{ZJUGray}{// 群组内标准化}\\
+        \>\> $A_i\!\leftarrow\!\operatorname{clip}(w_{\mathrm{PC}}\hat A_{i,\mathrm{PC}}\!+\!w_{\mathrm{SA}}\hat A_{i,\mathrm{SA}},-A_{\max},A_{\max})$ \hfill \textcolor{ZJUGray}{// 加权组合}\\
+        \>\> \textbf{For} 每个转移 $(z_t,z_{t-1},c)$ \textbf{do}\\
+        \>\>\> $\rho_i\!\leftarrow\!\exp(\log p_\theta(z_{t-1}|z_t,c)\!-\!\ell_i^{\mathrm{old}})$ \hfill \textcolor{ZJUGray}{// 策略比值}\\
+        \>\>\> $L_{\mathrm{pg}}\!\leftarrow\!-\operatorname{mean}\{\min(\rho_i A_i,\operatorname{clip}(\rho_i,1\!-\!\varepsilon,1\!+\!\varepsilon)A_i)\}$\\
+        \>\>\> $L_{\mathrm{KL}}\!\leftarrow\!\textsc{StepKL}(\pi_\theta,\pi_{\mathrm{ref}};z_t,c)$\\
+        \>\>\> 更新 LoRA：$L_{\mathrm{pg}}+\beta L_{\mathrm{KL}}$ \hfill \textcolor{ZJUGray}{// 梯度更新}\\
+        \>\> \textbf{end for}\\
+        \> \textbf{end for}\\
+        \textbf{end for}
+        \end{tabbing}
+      \end{minipage}
+    };
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{系统架构}
+  \slidekey{Actor 节点、VLM Judge 节点、Trainer 节点解耦，使视频采样、VLM 评分和参数更新可以流水化执行。}
+
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \centering
+      \includegraphics[width=\textwidth,height=0.52\paperheight,keepaspectratio]{system_architecture.pdf}
+    \end{column}%
+    \begin{column}{0.44\textwidth}
+      \small
+      \begin{compactitem}
+        \item \textbf{Actor 节点}接收物理事件提示词，采样同一提示词下的 $G$ 条候选视频，记录旧策略概率，将视频发送给 Judge。
+        \item \textbf{VLM Judge 节点}对每条视频独立输出 PC 与 SA 双维度奖励分数，将评分结果发送给 Trainer。
+        \item \textbf{Trainer 节点}在群组内标准化奖励、计算优势估计，通过 Flow-GRPO 更新 LoRA 参数，再将新权重同步回 Actor。
+      \end{compactitem}
+    \end{column}
+  \end{columns}
+\end{frame}

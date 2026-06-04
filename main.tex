@@ -1,0 +1,218 @@
+% !TEX program = xelatex
+% 基于视觉语言模型反馈与强化学习优化的世界模型后训练研究
+% 毕业设计答辩 Beamer 稿
+
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+% ============================================================
+% Packages
+% ============================================================
+\usepackage[UTF8, fontset=fandol]{ctex}
+\usepackage{amsmath, amssymb, bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, shapes.geometric}
+\usepackage{hyperref}
+
+\graphicspath{
+    {/data/fanliaoyuan/02/video-r1/GenRL/thesis-master/figure/}
+    {/data/fanliaoyuan/02/video-r1/GenRL/thesis-master/figure/logo/}
+}
+
+% ============================================================
+% 原始模板视觉系统：Madrid + 浙大蓝
+% ============================================================
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\definecolor{ZJUBlue}{RGB}{0, 75, 122}
+\definecolor{ZJULight}{RGB}{70, 130, 180}
+\definecolor{ZJUGold}{RGB}{196, 160, 52}
+\definecolor{ZJUGray}{RGB}{107, 114, 128}
+\definecolor{ZJUGreen}{RGB}{46, 125, 50}
+\definecolor{ZJURed}{RGB}{198, 40, 40}
+\definecolor{SoftGray}{RGB}{248, 251, 253}
+\definecolor{LineGray}{RGB}{208, 215, 222}
+\definecolor{CodeBg}{RGB}{248, 250, 252}
+\definecolor{TitleBlue}{RGB}{234, 244, 250}
+\definecolor{SOTAPink}{RGB}{252, 232, 237}
+
+\setbeamercolor{palette primary}{bg=ZJUBlue, fg=white}
+\setbeamercolor{palette secondary}{bg=ZJULight, fg=white}
+\setbeamercolor{palette tertiary}{bg=ZJUBlue, fg=white}
+\setbeamercolor{structure}{fg=ZJUBlue}
+\setbeamercolor{title}{fg=white, bg=ZJUBlue}
+\setbeamercolor{frametitle}{fg=ZJUBlue, bg=TitleBlue}
+\setbeamercolor{block title}{bg=TitleBlue, fg=ZJUBlue}
+\setbeamercolor{block body}{bg=ZJUBlue!5, fg=black}
+\setbeamercolor{block title alerted}{bg=ZJURed!12, fg=ZJURed!85!black}
+\setbeamercolor{block body alerted}{bg=ZJURed!5, fg=black}
+\setbeamercolor{block title example}{bg=ZJUGreen!13, fg=ZJUGreen!70!black}
+\setbeamercolor{block body example}{bg=ZJUGreen!4, fg=black}
+\setbeamercolor{item}{fg=ZJUBlue}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{itemize item}{\raise0.15ex\hbox{\scriptsize$\bullet$}}
+\setbeamertemplate{itemize subitem}{\raise0.15ex\hbox{\tiny$\bullet$}}
+
+\setbeamerfont{title}{size=\Large, series=\bfseries}
+\setbeamerfont{subtitle}{size=\normalsize}
+\setbeamerfont{frametitle}{size=\large, series=\bfseries}
+\setbeamerfont{framesubtitle}{size=\small}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.70cm,dp=0.18cm]{frametitle}
+    \hbox to \paperwidth{%
+      \hspace*{0.55cm}%
+      \vbox to 0.70cm{\vfil\hbox{\large\bfseries\insertframetitle}\vfil}%
+      \hfil\hspace*{0.55cm}%
+    }%
+  \end{beamercolorbox}
+  \vspace{0.05cm}
+}
+\definecolor{FootGray}{RGB}{156,163,175}
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \vbox{%
+    \hbox{\hspace*{0.45cm}\color{LineGray}\rule{\dimexpr\paperwidth-0.90cm\relax}{0.3pt}}%
+    \hbox{%
+      \begin{beamercolorbox}[wd=.28\paperwidth,ht=2.8ex,dp=1.0ex,leftskip=0.45cm]{normal text}%
+        {\fontsize{7.5}{9}\selectfont\color{FootGray}答辩人姓名 | XXXXXXXXXX}%
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.52\paperwidth,ht=2.8ex,dp=1.0ex,center]{normal text}%
+        {\fontsize{7.5}{9}\selectfont\color{FootGray}基于视觉语言模型反馈与强化学习优化的世界模型后训练研究}%
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.20\paperwidth,ht=2.8ex,dp=1.0ex,rightskip=0.45cm plus1fil]{normal text}%
+        {\fontsize{7.5}{9}\selectfont\color{FootGray}\insertframenumber/\inserttotalframenumber}%
+      \end{beamercolorbox}%
+    }%
+  }%
+}
+
+% ============================================================
+% Helpers
+% ============================================================
+\newcommand{\slidekey}[1]{}
+
+\newcommand{\sectioncover}[3]{%
+  {
+  \setbeamertemplate{footline}{}
+  \begin{frame}[plain]
+    \begin{tikzpicture}[remember picture,overlay]
+      \fill[white] (current page.south west) rectangle (current page.north east);
+      \fill[TitleBlue] (current page.north west) rectangle ([yshift=-0.78cm]current page.north east);
+      \draw[LineGray,line width=0.4pt]
+        ([xshift=0.75cm,yshift=-0.78cm]current page.north west) --
+        ([xshift=-0.75cm,yshift=-0.78cm]current page.north east);
+      \node[anchor=north east, xshift=-0.72cm, yshift=-0.18cm] at (current page.north east)
+        {\includegraphics[height=0.58cm]{zjuchar.pdf}};
+      \node[anchor=west, text=ZJUBlue, font=\Large\bfseries] at ([xshift=1.25cm,yshift=-2.35cm]current page.north west) {#1};
+      \node[
+        anchor=west,
+        text=ZJUBlue,
+        font=\fontsize{24}{29}\selectfont\bfseries,
+        text width=8.3cm,
+        align=left
+      ] at ([xshift=1.25cm,yshift=-3.18cm]current page.north west) {#2};
+      \node[
+        anchor=west,
+        text=ZJUGray,
+        font=\normalsize,
+        text width=9.2cm,
+        align=left
+      ] at ([xshift=1.25cm,yshift=-4.10cm]current page.north west) {#3};
+      \draw[LineGray,line width=0.75pt]
+        ([xshift=1.25cm,yshift=-4.88cm]current page.north west) --
+        ([xshift=8.20cm,yshift=-4.88cm]current page.north west);
+    \end{tikzpicture}
+  \end{frame}
+  }
+}
+
+\newcommand{\tagbox}[2][ZJUBlue]{%
+  \tikz[baseline=(n.base)]\node[
+    fill=#1!9,
+    draw=#1!55,
+    rounded corners=2pt,
+    inner xsep=4pt,
+    inner ysep=2pt
+  ] (n) {\scriptsize\bfseries\textcolor{#1}{#2}};
+}
+
+\newcommand{\metric}[3]{%
+  \begin{tikzpicture}
+    \node[
+      fill=SoftGray,
+      draw=LineGray,
+      rounded corners=3pt,
+      minimum width=3.0cm,
+      minimum height=1.05cm,
+      align=center
+    ] {
+      {\scriptsize #1}\\[-1pt]
+      {\Large\bfseries\textcolor{ZJUBlue}{#2}}\\[-1pt]
+      {\scriptsize\textcolor{ZJUGreen}{#3}}
+    };
+  \end{tikzpicture}
+}
+
+\newenvironment{compactitem}{%
+  \begin{itemize}
+    \setlength{\itemsep}{3pt}
+    \setlength{\parskip}{0pt}
+    \setlength{\parsep}{0pt}
+}{\end{itemize}}
+
+\newenvironment{compactenum}{%
+  \begin{enumerate}
+    \setlength{\itemsep}{4pt}
+    \setlength{\parskip}{0pt}
+    \setlength{\parsep}{0pt}
+}{\end{enumerate}}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\smalltab}{\scriptsize\renewcommand{\arraystretch}{1.16}}
+
+\tikzset{
+  module/.style={
+    fill=#1!12,
+    draw=#1!50,
+    rounded corners=3pt,
+    minimum height=0.72cm,
+    align=center,
+    inner sep=4pt,
+    font=\scriptsize
+  },
+  flow/.style={
+    -{Stealth[length=4pt,width=3.5pt]},
+    thick,
+    color=ZJUBlue!70
+  }
+}
+
+% ============================================================
+% Metadata
+% ============================================================
+\title[世界模型后训练研究]{基于视觉语言模型反馈与强化学习优化的\\世界模型后训练研究}
+\subtitle{本科毕业论文答辩}
+\author[答辩人姓名]{答辩人：答辩人姓名；学号：XXXXXXXXXX；指导教师：XXX老师}
+\institute[XX大学]{XX学院 \quad 20XX 级XX专业}
+\date{20XX 年 X 月 X 日}
+
+\begin{document}
+
+\input{sec/0-cover}
+\input{sec/1-background}
+\input{sec/2-method}
+\input{sec/3-experiment}
+\input{sec/4-summary}
+\input{sec/5-closing}
+
+\end{document}
