@@ -1,11 +1,9 @@
-# 答辩 Beamer 模板
-
-基于 Madrid 主题 + 浙大蓝配色的毕业论文答辩演示文稿模板，XeLaTeX 编译。
+# 报告模板
 
 ## 文件结构
 
 ```
-├── main.tex              ← 主文件（导言区 + \input 引入子文件）
+├── main.tex              ← 主文件
 └── sec/
     ├── 0-cover.tex           封面 + 目录
     ├── 1-background.tex      §01 研究背景与动机
